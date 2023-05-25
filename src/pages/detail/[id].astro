@@ -1,14 +1,32 @@
 ---
 import Layout from '@layouts/Layout.astro';
 
-const { id } = Astro.params;
-const response = await fetch(
-  `https://api.themoviedb.org/3/movie/${ id }?api_key=d93d4aab0e3039239f7cd26ff74d0899&language=en-US`
-);
+const token = import.meta.env.TOKEN;
 
+//API Read Access Token (v4 auth)
+const options = {
+  method: 'GET',
+  headers: {
+    accept: 'application/json',
+    Authorization: token,
+  }
+};
+
+//Movie
+const { id } = Astro.params;
+const response = await fetch(`https://api.themoviedb.org/3/movie/${ id }?language=en-US`, options);
 const data = await response.json();
 const poster_url = "https://image.tmdb.org/t/p/w500/";
+
+
+//Trailer
+const fetchVideo = await fetch(`https://api.themoviedb.org/3/movie/${ id }/videos?language=en-US`, options);
+const trailer = await fetchVideo.json();
+const res = trailer.results.filter((p) => p.type === "Trailer");
+const video = res[0];
+const youtube = "https://www.youtube.com/embed/";
 ---
+
 <Layout>
   <div class="row mt-5">
     <div class="col-md-4">
@@ -27,8 +45,13 @@ const poster_url = "https://image.tmdb.org/t/p/w500/";
       <h1><span class="badge text-bg-danger">{ Math.round(data.vote_average) }</span></h1>
     </div>
   </div>
-  <h1>Trailer</h1>
 
+  <h1>Trailer</h1>
+  <iframe 
+    src={youtube + video.key} 
+    width="1280" 
+    height="720" 
+    allowfullscreen></iframe>
 </Layout>
 
 
